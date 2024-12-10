@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import Link from "next/link";
 import { Bell, Search, User, Sun, Moon, X } from "lucide-react";
 import { useTheme } from "@/components/theme-context";

@@ -183,9 +183,4 @@ export async function POST(
 //   }
 // }
 
-export const config = {
-  api: {
-    bodyParser: false,
-    responseLimit: "500mb",
-  },
-};
+export const dynamic = "force-dynamic";

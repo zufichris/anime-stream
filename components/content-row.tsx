@@ -84,7 +84,7 @@ export function ContentRow({ title, initialItems }: ContentRowProps) {
       container.addEventListener("scroll", handleScroll);
       return () => container.removeEventListener("scroll", handleScroll);
     }
-  }, [isLoading, hasNextPage]);
+  }, [isLoading, hasNextPage, handleScroll]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -139,7 +139,9 @@ export function ContentRow({ title, initialItems }: ContentRowProps) {
             </div>
           ))}
           {isLoading && (
-            <div className="flex-none w-40 h-[90px] bg-gray-200 animate-pulse rounded-md"></div>
+            <div className="flex-none w-40 h-[90px] bg-gray-200 animate-pulse rounded-md">
+              {page}
+            </div>
           )}
         </div>
       ) : null}

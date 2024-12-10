@@ -44,7 +44,7 @@ class AniListAdapter {
       const page = res.data.data.Page;
       const animeList = this.mapper(page);
       return animeList;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error fetching anime:`, error);
     }
   }
@@ -94,11 +94,13 @@ class AniListAdapter {
         query,
         variables: { id },
       });
-      const result = res.data.data?.Media?.streamingEpisodes?.map((x) => ({
-        title: x?.title,
-        id: x?.title,
-        thumbnail: x?.thumbnail,
-      })) as IEpisode[];
+      const result = res.data.data?.Media?.streamingEpisodes?.map(
+        (x: Record<string, string>) => ({
+          title: x?.title,
+          id: x?.title,
+          thumbnail: x?.thumbnail,
+        })
+      ) as IEpisode[];
       return result;
     } catch (error) {
       console.error("Error fetching episodes:", error);
@@ -106,18 +108,31 @@ class AniListAdapter {
     }
   }
 
-  private mapper(page: any): IAnimeList {
+  private mapper(page: Record<string, unknown>): IAnimeList {
     const result = {
-      page: page?.currentPage ?? 1,
-      hasNextPage: page?.hasNextPage,
-      limit: page?.perPage,
-      list: page?.media?.map((x: any) => ({
+      page: (page?.currentPage as number) ?? 1,
+      hasNextPage: page?.hasNextPage as boolean,
+      limit: page?.perPage as number,
+      list: (
+        page?.media as Record<string, unknown | Record<string, unknown>>[]
+      )?.map((x) => ({
         id: x.id,
-        title: x?.title?.english ?? x?.title?.romaji ?? "N/A",
+        title:
+          (x?.title as Record<string, string>)?.english ??
+          (x?.title as Record<string, string>)?.romaji ??
+          "N/A",
         imgLg:
-          x?.coverImage?.medium?.replace("medium", "large") ??
-          x?.coverImage?.large?.replace("medium", "large"),
-        imgMd: x?.coverImage?.medium ?? x?.coverImage?.large,
+          (x?.coverImage as Record<string, string>)?.medium?.replace(
+            "medium",
+            "large"
+          ) ??
+          (x?.coverImage as Record<string, string>)?.large?.replace(
+            "medium",
+            "large"
+          ),
+        imgMd:
+          (x?.coverImage as Record<string, string>)?.medium ??
+          (x?.coverImage as Record<string, string>)?.large,
         description: x.description ?? "N?A",
       })) as IAnime[],
     };

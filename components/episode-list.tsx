@@ -28,7 +28,10 @@ export function EpisodeList({ episodes }: EpisodeListProps) {
               </p>
             </div>
             <PlayCircle
-              onClick={(e) => handlePlay(episode.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                handlePlay(episode.id);
+              }}
               className="h-6 w-6 text-black dark:text-white transition-transform duration-300 ease-in-out transform group-hover:scale-110"
             />
           </div>
