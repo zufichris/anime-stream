@@ -2,7 +2,7 @@ import axios from "axios";
 
 export const ApiClient = (config?: {
   to?: "/" | "anime-list";
-  type?: "json" | "html" | "gzip";
+  type?: "json" | "html" | "gzip" | "form-data";
 }) => {
   const baseURL =
     config?.to === "anime-list" ? "https://graphql.anilist.co" : "/";
