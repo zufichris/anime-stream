@@ -2,10 +2,11 @@ import { Header } from "@/components/header";
 import { ThemeProvider } from "@/components/theme-context";
 import "./globals.css";
 import type { Metadata } from "next";
+import { staticData } from "@/static";
 
 export const metadata: Metadata = {
-  title: "NetStream - Your Streaming Platform",
-  description: "Stream your favorite movies and TV shows",
+  title: `${staticData.appName} - Your Streaming Platform`,
+  description: staticData.description,
 };
 
 export default function RootLayout({
