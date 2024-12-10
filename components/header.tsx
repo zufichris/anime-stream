@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { SearchResults } from "@/components/search-results";
 import { useDebouncedCallback } from "use-debounce";
+import { staticData } from "@/static";
 
 export function Header() {
   const { theme, toggleTheme } = useTheme();
@@ -50,7 +51,7 @@ export function Header() {
       <div className="container mx-auto flex items-center justify-between p-4">
         <div className="flex items-center">
           <Link href="/" className="text-red-600 font-bold text-2xl mr-8">
-            ThisAintAnime
+            {staticData.appName}
           </Link>
           <nav className="hidden md:flex space-x-4">
             <Link

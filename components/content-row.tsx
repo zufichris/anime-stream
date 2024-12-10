@@ -84,7 +84,7 @@ export function ContentRow({ title, initialItems }: ContentRowProps) {
       container.addEventListener("scroll", handleScroll);
       return () => container.removeEventListener("scroll", handleScroll);
     }
-  }, [isLoading, hasNextPage, handleScroll]);
+  }, [isLoading, hasNextPage]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
