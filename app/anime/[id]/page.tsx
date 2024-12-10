@@ -8,6 +8,30 @@ import { Suspense } from "react";
 import { AnimePlayer } from "@/components/anime-player";
 import { IEpisode } from "@/@types/anime";
 import Link from "next/link";
+import { staticData } from "@/static";
+
+export async function generateMetadata({ params }: { params: { id: string } }) {
+  const anime = await aniListAdapter.getById(Number(params.id));
+
+  if (!anime) {
+    return {
+      title: `Anime not found | $${staticData.appName}`,
+      description: `This anime does not exist on ${staticData.appName}.`,
+    };
+  }
+
+  return {
+    title: `${anime.title} | ${staticData.appName}`,
+    description: `${anime.description} Watch on ${staticData.appName}.`,
+    openGraph: {
+      title: anime.title,
+      description: `${anime.description} Watch on ${staticData.appName}.`,
+      images: anime.imgLg,
+      url: `https://${staticData.appName.toLocaleLowerCase()}.vercel.app/anime/${params.id}`,
+      type: "website",
+    },
+  };
+}
 
 export default async function AnimePage({
   params,

@@ -1,4 +1,4 @@
 export const staticData = {
-  appName: "animestream",
+  appName: "AnimeStream",
   description: "Build by a fan for himself lol...",
 };
