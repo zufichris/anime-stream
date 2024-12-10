@@ -10,6 +10,8 @@ export function Hero({ hero }: { hero: IAnime }) {
         className="absolute inset-0 bg-cover bg-center"
         style={{
           backgroundImage: `url("${hero.imgLg}")`,
+          height: "auto",
+          width: "auto",
         }}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-black to-transparent" />

@@ -17,4 +17,6 @@ export interface IEpisode {
   stream?: string;
   duration: string;
   thumbnail: string;
+  userId?: string;
+  animeId: string;
 }
