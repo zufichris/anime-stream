@@ -1,21 +1,49 @@
-import { ApiClient } from "@/config/axios";
+"use server";
+import { UploadedFileData } from "uploadthing/types";
+import { IEpisode } from "@/@types/anime";
+import { connectDb } from "../db/db";
+import { EpisodeModel } from "../models/Episode";
+import { EpisodeRepository } from "../repository/EpisodeRepository";
 
-export async function uploadFiles(files: File[], animeId: string) {
-  const formData = new FormData();
+export async function storeFiles(
+  files: UploadedFileData[],
+  animeId: number,
+  userName?: string
+) {
+  try {
+    const data = files.map((file, i) => ({
+      animeId,
+      title: `Episode ${i + 1}-${file.name}`,
+      userId: userName,
+      stream: file.url,
+      number: i + 1,
+    })) as IEpisode[];
 
-  // Append all files to FormData
-  files.forEach((file) => {
-    formData.append("files", file);
-  });
-  console.log(formData.get("files"));
-  // Now `animeId` is used directly in the path
-  const response = await ApiClient({
-    to: "/", // Specify the base path if necessary
-  }).post(`/upload/${animeId}/`, formData);
-
-  if (!response) {
-    throw new Error("Upload failed");
+    await connectDb();
+    const saved = await new EpisodeRepository(EpisodeModel).save(data);
+    return saved;
+  } catch (error) {
+    throw error;
   }
-
-  return response;
+}
+export async function getEpisodes(
+  animeId: number,
+  {
+    limit,
+    page,
+  }: {
+    limit?: number;
+    page?: number;
+  }
+): Promise<{ total: number; episodes: IEpisode[] } | null> {
+  try {
+    await connectDb();
+    const result = await new EpisodeRepository(EpisodeModel).find(animeId, {
+      limit: limit ?? 10,
+      page: page ?? 1,
+    });
+    return result;
+  } catch (error) {
+    throw error;
+  }
 }
