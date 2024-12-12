@@ -4,7 +4,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { IAnime, IAnimeList } from "@/@types/anime";
 import { useEffect, useRef, useState } from "react";
-import { aniListAdapter } from "@/lib/api/anime-list";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 interface ContentRowProps {
   title: string;
@@ -13,138 +14,108 @@ interface ContentRowProps {
 
 export function ContentRow({ title, initialItems }: ContentRowProps) {
   const router = useRouter();
-  const [items, setItems] = useState<IAnime[]>(initialItems?.list);
-  const [page, setPage] = useState(initialItems?.page);
-  const [hasNextPage, setHasNextPage] = useState(initialItems?.hasNextPage);
-  const [isLoading, setIsLoading] = useState(false);
+  const [items] = useState<IAnime[]>(initialItems?.list);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [showLeftArrow, setShowLeftArrow] = useState(false);
+  const [showRightArrow, setShowRightArrow] = useState(true);
 
   const handleItemClick = (id: number | string) => {
     router.push(`/anime/${id}`);
   };
-  const loadMore = async () => {
-    try {
-      const newList = await aniListAdapter.getAnimeList({
-        sort: "TRENDING_DESC",
-        limit: 10,
-      });
-      return newList;
-    } catch (error) {
-      console.log(error);
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  const handleScroll = async () => {
+  const scroll = (direction: 'left' | 'right') => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } =
-        scrollContainerRef.current;
-      if (
-        scrollWidth - (scrollLeft + clientWidth) < 20 &&
-        !isLoading &&
-        hasNextPage
-      ) {
-        setIsLoading(true);
-        const newItems = await loadMore();
-        setItems((prevItems) => [...prevItems, ...newItems!.list]);
-        setPage(newItems!.page);
-        setHasNextPage(newItems!.hasNextPage);
-        setIsLoading(false);
-      }
+      const scrollAmount = 300; // Scroll by one item width
+      scrollContainerRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth'
+      });
     }
   };
 
-  const startAutoScroll = () => {
-    // if (scrollContainerRef.current) {
-    //   const scrollAmount = 1;
-    //   scrollContainerRef.current.scrollLeft += scrollAmount;
-    //   if (
-    //     scrollContainerRef.current.scrollLeft >=
-    //     scrollContainerRef.current.scrollWidth -
-    //       scrollContainerRef.current.clientWidth
-    //   ) {
-    //     scrollContainerRef.current.scrollLeft = 0;
-    //   }
-    //   timeoutRef.current = setTimeout(startAutoScroll, 50);
-    // }
-  };
-
-  const stopAutoScroll = () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
+  const checkArrows = () => {
+    if (scrollContainerRef.current) {
+      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      setShowLeftArrow(scrollLeft > 0);
+      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 1);
     }
   };
 
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (container) {
-      container.addEventListener("scroll", handleScroll);
-      return () => container.removeEventListener("scroll", handleScroll);
-    }
-  }, [isLoading, hasNextPage]);
-
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (container) {
-      let inactivityTimer: NodeJS.Timeout;
-
-      const resetTimer = () => {
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        stopAutoScroll();
-        inactivityTimer = setTimeout(startAutoScroll, 5000);
-      };
-
-      container.addEventListener("mousemove", resetTimer);
-      container.addEventListener("mousedown", resetTimer);
-      resetTimer();
-
-      return () => {
-        container.removeEventListener("mousemove", resetTimer);
-        container.removeEventListener("mousedown", resetTimer);
-        if (inactivityTimer) clearTimeout(inactivityTimer);
-        stopAutoScroll();
-      };
+      container.addEventListener('scroll', checkArrows);
+      checkArrows();
+      return () => container.removeEventListener('scroll', checkArrows);
     }
   }, []);
 
+  useEffect(() => {
+    const autoScroll = setInterval(() => {
+      if (scrollContainerRef.current) {
+        const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+        if (scrollLeft + clientWidth < scrollWidth) {
+          scrollContainerRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+        } else {
+          scrollContainerRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        }
+      }
+    }, 10000);
+
+    return () => clearInterval(autoScroll);
+  }, []);
+
   return (
-    <div className="mb-8">
+    <div className="mb-8 relative">
       <h2 className="text-2xl font-semibold text-black dark:text-white mb-4">
         {title}
       </h2>
-      {items?.length ? (
+      <div className="relative">
+        {showLeftArrow && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white"
+            onClick={() => scroll('left')}
+          >
+            <ChevronLeft className="h-8 w-8" />
+          </Button>
+        )}
+        {showRightArrow && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 text-white"
+            onClick={() => scroll('right')}
+          >
+            <ChevronRight className="h-8 w-8" />
+          </Button>
+        )}
         <div
           ref={scrollContainerRef}
-          className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide"
+          className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide snap-x snap-mandatory"
         >
-          {items.map((item) => (
+          {items?.map((item) => (
             <div
               key={item.id}
-              className="flex-none cursor-pointer transition-transform duration-300 hover:scale-105"
+              className="flex-none cursor-pointer transition-transform duration-300 hover:scale-105 snap-start"
               onClick={() => handleItemClick(item.id)}
             >
               <Image
                 src={item.imgLg}
                 alt={item.title}
-                width={160}
-                height={90}
-                className="rounded-md object-cover"
+                width={300}
+                height={169}
+                className="rounded-md object-cover w-[300px] h-[169px]"
               />
-              <p className="mt-2 text-sm text-black dark:text-white w-40">
+              <p className="mt-2 text-sm text-black dark:text-white w-[300px] truncate">
                 {item.title}
               </p>
             </div>
           ))}
-          {isLoading && (
-            <div className="flex-none w-40 h-[90px] bg-gray-200 animate-pulse rounded-md">
-              {page}
-            </div>
-          )}
         </div>
-      ) : null}
+      </div>
     </div>
   );
 }
+

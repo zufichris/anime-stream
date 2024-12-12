@@ -8,11 +8,10 @@ import Link from "next/link";
 
 interface SearchResultsProps {
   query: string;
+  onResultClick: () => void;
 }
 
-// This would typically be an API call
-
-export function SearchResults({ query }: SearchResultsProps) {
+export function SearchResults({ query, onResultClick }: SearchResultsProps) {
   const [results, setResults] = useState<IAnime[]>([]);
   const [loading, setLoading] = useState(false);
   const searchAnime = async (query: string) => {
@@ -32,7 +31,7 @@ export function SearchResults({ query }: SearchResultsProps) {
   }, [query]);
 
   return query?.length ? (
-    <div className="absolute  top-full left-0 w-full bg-white dark:bg-gray-800 shadow-lg rounded-b-lg overflow-hidden z-50">
+    <div className="absolute top-full left-0 w-full bg-white dark:bg-gray-800 shadow-lg rounded-b-lg overflow-hidden z-50">
       <div>
         <h3 className="text-lg px-2 py-3 pt-4 font-semibold text-black dark:text-white mb-2">
           Search Results
@@ -42,8 +41,9 @@ export function SearchResults({ query }: SearchResultsProps) {
             results?.map((result) => (
               <Link
                 key={result.id}
-                className="flex items-center  px-2.5 py-1.5  hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
+                className="flex items-center px-2.5 py-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded cursor-pointer"
                 href={`/anime/${result.id}`}
+                onClick={onResultClick}
               >
                 <Image
                   src={result.imgMd}
@@ -67,3 +67,4 @@ export function SearchResults({ query }: SearchResultsProps) {
     </div>
   ) : null;
 }
+

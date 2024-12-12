@@ -3,9 +3,10 @@
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { Button } from "@/components/ui/button";
-import { ApiClient } from "@/config/axios";
-
-// Define allowed file types and size limits
+import { useUploadThing } from "@/utils/uploadthing";
+import { storeFiles } from "@/lib/actions/anime";
+import { LocalStore } from "@/utils/localstore";
+import { IUser } from "@/@types/user";
 const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
 const MAX_FILES = 10;
 const ALLOWED_TYPES = {
@@ -20,7 +21,6 @@ interface UploadPageProps {
 
 export default function UploadPage({ params }: UploadPageProps) {
   const [files, setFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -43,41 +43,20 @@ export default function UploadPage({ params }: UploadPageProps) {
     accept: ALLOWED_TYPES,
     maxSize: MAX_FILE_SIZE,
   });
-
-  const handleUpload = async () => {
-    try {
-      setUploading(true);
-      setProgress(0);
-
-      const formData = new FormData();
-      files.forEach((file) => {
-        formData.append("files", file);
-      });
-
-      // Validate anime ID
-      if (!params.animeId || !/^\d+$/.test(params.animeId)) {
-        throw new Error("Invalid anime ID");
-      }
-
-      formData.set("animeId", params.animeId);
-
-      const res = await ApiClient({
-        to: "/",
-        type: "form-data",
-      }).post(`/api/upload/${params.animeId}`, formData);
-
-      if (res.data.success) {
-        setFiles([]);
-      } else {
-        throw new Error(res.data.message || "Upload failed");
-      }
-    } catch (error) {
-      console.error("Upload failed:", error);
-    } finally {
-      setUploading(false);
-      setProgress(0);
-    }
-  };
+  const { startUpload, isUploading } = useUploadThing("imageUploader", {
+    onClientUploadComplete: async (files) => {
+      await storeFiles(
+        files,
+        Number(params.animeId),
+        new LocalStore(window).getItem<IUser>("user")?.userName
+      );
+      setFiles([]);
+    },
+    onUploadProgress: (p) => setProgress(p),
+    onUploadError: () => {
+      alert("error occurred while uploading");
+    },
+  });
 
   const removeFile = (index: number) => {
     setFiles((prev) => prev.filter((_, i) => i !== index));
@@ -91,9 +70,9 @@ export default function UploadPage({ params }: UploadPageProps) {
         {...getRootProps()}
         className={`border-2 border-dashed rounded-lg p-8 mb-8 text-center transition-colors
           ${isDragActive ? "border-primary bg-primary/10" : "border-gray-300"}
-          ${uploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
+          ${isUploading ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
       >
-        <input {...getInputProps()} disabled={uploading} />
+        <input {...getInputProps()} disabled={isUploading} />
         {isDragActive ? (
           <p>Drop the files here ...</p>
         ) : (
@@ -119,13 +98,15 @@ export default function UploadPage({ params }: UploadPageProps) {
                 className="flex items-center justify-between p-2 bg-gray-50 dark:text-black rounded"
               >
                 <span>
-                  {file.name} ({(file.size / 1024 / 1024).toFixed(2)}MB)
+                  EP{index + 1}-{file.name} (
+                  {(file.size / 1024 / 1024).toFixed(2)}
+                  MB)
                 </span>
                 <Button
                   variant="destructive"
                   size="sm"
                   onClick={() => removeFile(index)}
-                  disabled={uploading}
+                  disabled={isUploading}
                 >
                   Remove
                 </Button>
@@ -135,21 +116,21 @@ export default function UploadPage({ params }: UploadPageProps) {
         </div>
       )}
 
-      {uploading && progress > 0 && (
+      {isUploading && progress > 0 && (
         <div className="w-full bg-gray-200 rounded-full h-2.5 mb-4">
           <div
-            className="bg-primary h-2.5 rounded-full transition-all duration-300"
+            className="bg-red-600 h-2.5 rounded-full transition-all duration-300"
             style={{ width: `${progress}%` }}
           />
         </div>
       )}
 
       <Button
-        onClick={handleUpload}
-        disabled={files.length === 0 || uploading}
+        onClick={() => startUpload(files)}
+        disabled={files.length === 0 || isUploading}
         className="w-full md:w-auto"
       >
-        {uploading ? `Uploading (${progress}%)...` : "Upload Files"}
+        {isUploading ? `Uploading (${progress}%)...` : "Upload Files"}
       </Button>
     </div>
   );

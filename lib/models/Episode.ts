@@ -4,7 +4,14 @@ import mongoose from "mongoose";
 const schema = new mongoose.Schema<IEpisode>(
   {
     title: String,
-    duration: Number,
+    animeId: {
+      type: Number,
+      required: true,
+    },
+    number: {
+      type: Number,
+      required: true,
+    },
     id: mongoose.Schema.Types.ObjectId,
     stream: String,
     thumbnail: String,
@@ -16,4 +23,4 @@ const schema = new mongoose.Schema<IEpisode>(
 );
 
 export const EpisodeModel =
-  mongoose.models.Episode || mongoose.model("Episode", schema);
+  mongoose?.models?.Episode || mongoose.model("Episode", schema);
