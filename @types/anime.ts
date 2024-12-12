@@ -12,11 +12,11 @@ export interface IAnimeList {
   list: IAnime[];
 }
 export interface IEpisode {
-  id: string;
+  id?: string;
   title: string;
+  number: number;
   stream?: string;
-  duration: string;
-  thumbnail: string;
+  thumbnail?: string;
   userId?: string;
-  animeId: string;
+  animeId: number;
 }
