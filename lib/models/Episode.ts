@@ -3,7 +3,10 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema<IEpisode>(
   {
-    title: String,
+    title: {
+type:String,
+required:true
+},
     animeId: {
       type: Number,
       required: true,
@@ -12,7 +15,6 @@ const schema = new mongoose.Schema<IEpisode>(
       type: Number,
       required: true,
     },
-    id: mongoose.Schema.Types.ObjectId,
     stream: String,
     thumbnail: String,
     userId: mongoose.Schema.Types.ObjectId,
