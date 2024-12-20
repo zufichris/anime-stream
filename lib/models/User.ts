@@ -3,9 +3,14 @@ import mongoose from "mongoose";
 
 const schema = new mongoose.Schema<IUser>(
   {
-    userName: String,
-    id: mongoose.Schema.Types.ObjectId,
-    location: String,
+    userName: {
+type:String,
+required:[true,"username required to track you down"]
+},
+    location: {
+type:String,
+required:[true,"username required to track you down lol"]
+},
   },
   {
     timestamps: true,
