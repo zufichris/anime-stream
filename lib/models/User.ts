@@ -9,7 +9,7 @@ required:[true,"username required to track you down"]
 },
     location: {
 type:String,
-required:[true,"username required to track you down lol"]
+required:[true,"Lication required to track you down lol"]
 },
   },
   {
